@@ -1,0 +1,106 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MetaWhale Tactical Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-extrabold text-emerald-400">MetaWhale Tactical Calculator</h1>
+            <button onclick="toggleLang()" id="langBtn" class="bg-emerald-600 px-4 py-2 rounded-lg font-bold">മലയാളം</button>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-700 mb-10">
+            <div><label class="text-xs text-slate-400" id="lUsdt">1 USDT (₹)</label><input type="number" id="rateUsdt" value="96" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
+            <div><label class="text-xs text-slate-400" id="lPol">1 POL (₹)</label><input type="number" id="ratePol" value="8.4" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
+            <div><label class="text-xs text-slate-400" id="lCes">1 CES ($)</label><input type="number" id="rateCes" value="0.83" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
+            <div><label class="text-xs text-slate-400" id="lGas">Gas Fee (POL)</label><input type="number" id="gasPol" value="5" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
+            <div class="col-span-2 md:col-span-4"><label class="text-xs text-slate-400" id="lBudget">Total Investment (₹)</label><input type="number" id="userBudget" value="50000" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700 font-bold"></div>
+        </div>
+
+        <div id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <script>
+        let isMl = true;
+        const dict = {
+            'en': { lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'Gas Fee (POL)', lBudget: 'Total Investment (₹)', cost: 'Cost', gas: 'Gas', bal: 'CES Bal', qty: 'CES Coins', totInc: 'Total Income', lang: 'മലയാളം' },
+            'ml': { lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'ഗ്യാസ് ഫീ (POL)', lBudget: 'ആകെ നിക്ഷേപം (₹)', cost: 'ചെലവ്', gas: 'ഗ്യാസ്', bal: 'CES ബാലൻസ്', qty: 'CES ടോക്കൺ', totInc: 'ആകെ വരുമാനം', lang: 'English' }
+        };
+
+        function toggleLang() {
+            isMl = !isMl;
+            document.getElementById('langBtn').innerText = dict[isMl ? 'en' : 'ml'].lang;
+            document.getElementById('lUsdt').innerText = dict[isMl ? 'ml' : 'en'].lUsdt;
+            document.getElementById('lPol').innerText = dict[isMl ? 'ml' : 'en'].lPol;
+            document.getElementById('lCes').innerText = dict[isMl ? 'ml' : 'en'].lCes;
+            document.getElementById('lGas').innerText = dict[isMl ? 'ml' : 'en'].lGas;
+            document.getElementById('lBudget').innerText = dict[isMl ? 'ml' : 'en'].lBudget;
+            render();
+        }
+
+        const slotData = [
+            { id: 1, type: 'S6', cost: 10 }, { id: 2, type: 'S6', cost: 18 }, { id: 3, type: 'S3', cost: 32.4 },
+            { id: 4, type: 'S6', cost: 58.3 }, { id: 5, type: 'S6', cost: 105 }, { id: 6, type: 'S3', cost: 189 },
+            { id: 7, type: 'S6', cost: 340 }, { id: 8, type: 'S6', cost: 612 }, { id: 9, type: 'S3', cost: 1102 },
+            { id: 10, type: 'S6', cost: 1984 }, { id: 11, type: 'S6', cost: 3571 }, { id: 12, type: 'S3', cost: 6428 }
+        ];
+
+        function render() {
+            const usdt = parseFloat(document.getElementById('rateUsdt').value);
+            const pol = parseFloat(document.getElementById('ratePol').value);
+            const ces = parseFloat(document.getElementById('rateCes').value);
+            const gasNum = parseFloat(document.getElementById('gasPol').value);
+            const budget = parseFloat(document.getElementById('userBudget').value);
+            const lang = isMl ? 'ml' : 'en';
+            
+            const container = document.getElementById('dashboard');
+            container.innerHTML = '';
+            let runningSpent = 0;
+
+            slotData.forEach(s => {
+                const igtInr = s.cost * usdt;
+                const gasInr = gasNum * pol;
+                const totalSlot = igtInr + gasInr;
+                runningSpent += totalSlot;
+                const bal = budget - runningSpent;
+                const cesQty = bal > 0 ? (bal / (ces * usdt)).toFixed(2) : 0;
+
+                let incomeArr = new Array(6).fill(0);
+                const pVal = igtInr * 0.9;
+
+                if(s.type === 'S6') { incomeArr[2] = incomeArr[3] = incomeArr[4] = pVal; } 
+                else { incomeArr[0] = incomeArr[1] = incomeArr[3] = incomeArr[4] = pVal; }
+
+                const totalIncome = incomeArr.reduce((a, b) => a + b, 0);
+
+                container.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl">
+                        <h2 class="text-2xl font-bold text-emerald-400 mb-2">Slot ${s.id} (${s.type})</h2>
+                        <div class="text-sm space-y-1">
+                            <p>${dict[lang].cost}: <span class="text-white">${s.cost} IGT (₹${igtInr.toFixed(0)})</span></p>
+                            <p>${dict[lang].gas}: <span class="text-red-400">${gasNum} POL (₹${gasInr.toFixed(0)})</span></p>
+                            <p class="font-bold text-white border-t border-slate-700 pt-2">Total: ₹${totalSlot.toFixed(0)}</p>
+                            <p class="text-sky-300">${dict[lang].bal}: ₹${bal > 0 ? bal.toFixed(0) : 0}</p>
+                            <p class="text-yellow-400">${dict[lang].qty}: ${cesQty}</p>
+                        </div>
+                        <div class="mt-4 bg-black p-3 rounded-xl">
+                            <div class="grid grid-cols-3 gap-2 text-[10px] text-center">
+                                ${incomeArr.map((val, i) => `<div class="bg-slate-800 p-1 rounded">P${i+1}<br>₹${val.toFixed(0)}</div>`).join('')}
+                            </div>
+                            <p class="mt-3 text-center font-bold text-emerald-400">${dict[lang].totInc}: ₹${totalIncome.toFixed(0)}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        document.querySelectorAll('input').forEach(i => i.addEventListener('input', render));
+        render();
+    </script>
+</body>
+</html>
+
+```
