@@ -2,104 +2,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>MetaWhale Tactical Calculator</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <!-- Mobile-specific meta tags for native app feel -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#020617">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>MetaWhale Tactical</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Mobile app styling overrides */
+        :root {
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        body::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        /* Hide number input spinners */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
 </head>
-<body class="bg-slate-950 text-white p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-extrabold text-emerald-400">MetaWhale Tactical Calculator</h1>
-            <button onclick="toggleLang()" id="langBtn" class="bg-emerald-600 px-4 py-2 rounded-lg font-bold">മലയാളം</button>
-        </div>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased pb-24 selection:bg-emerald-500/30">
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-700 mb-10">
-            <div><label class="text-xs text-slate-400" id="lUsdt">1 USDT (₹)</label><input type="number" id="rateUsdt" value="96" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
-            <div><label class="text-xs text-slate-400" id="lPol">1 POL (₹)</label><input type="number" id="ratePol" value="8.4" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
-            <div><label class="text-xs text-slate-400" id="lCes">1 CES ($)</label><input type="number" id="rateCes" value="0.83" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
-            <div><label class="text-xs text-slate-400" id="lGas">Gas Fee (POL)</label><input type="number" id="gasPol" value="5" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700"></div>
-            <div class="col-span-2 md:col-span-4"><label class="text-xs text-slate-400" id="lBudget">Total Investment (₹)</label><input type="number" id="userBudget" value="50000" class="w-full bg-slate-950 p-3 rounded-xl border border-slate-700 font-bold"></div>
-        </div>
+    <!-- App Header (Sticky) -->
+    <header class="sticky top-0 z-50 glass-panel border-b border-slate-800 p-4 flex justify-between items-center safe-top">
+        <div class="flex items-center gap-2">
+            <div class="bg-emerald-500/10 p-2 rounded-xl text-emerald-400">
+                <i class="ph-fill ph-target text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-extrabold text-white tracking-tight leading-none">MetaWhale</h1>
+                <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">Tactical</p>
+            </div>
+        </div>
+        <button onclick="toggleLang()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 transition-all text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 border border-slate-700 shadow-sm">
+            <i class="ph ph-translate text-sm"></i> <span id="langText">മലയാളം</span>
+        </button>
+    </header>
 
-        <div id="dashboard" class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6"></div>
-    </div>
+    <main class="p-4 space-y-6 max-w-md mx-auto">
+        
+        <!-- Primary Investment Input -->
+        <div class="bg-gradient-to-br from-emerald-900/40 to-slate-900 border border-emerald-500/30 p-6 rounded-[2rem] shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 blur-3xl rounded-full -mr-10 -mt-10 pointer-events-none"></div>
+            <label class="text-sm text-emerald-200/80 font-semibold mb-2 block flex items-center gap-2" id="lBudget">
+                <i class="ph-fill ph-wallet"></i> Total Investment (₹)
+            </label>
+            <div class="flex items-center border-b-2 border-emerald-500/50 pb-2 focus-within:border-emerald-400 transition-colors">
+                <span class="text-3xl text-emerald-400 font-bold mr-2">₹</span>
+                <input type="number" id="userBudget" value="50000" class="w-full bg-transparent text-4xl font-extrabold text-white outline-none placeholder-slate-600" inputmode="numeric">
+            </div>
+        </div>
 
-    <script>
-        let isMl = true;
-        const dict = {
-            'en': { lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'Gas Fee (POL)', lBudget: 'Total Investment (₹)', cost: 'Cost', gas: 'Gas', bal: 'CES Bal', qty: 'CES Coins', totInc: 'Total Income', lang: 'മലയാളം' },
-            'ml': { lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'ഗ്യാസ് ഫീ (POL)', lBudget: 'ആകെ നിക്ഷേപം (₹)', cost: 'ചെലവ്', gas: 'ഗ്യാസ്', bal: 'CES ബാലൻസ്', qty: 'CES ടോക്കൺ', totInc: 'ആകെ വരുമാനം', lang: 'English' }
-        };
+        <!-- Configuration Inputs Grid -->
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-lg">
+            <h3 class="text-xs font-bold text-slate-400 flex items-center gap-2 mb-4 uppercase tracking-wider" id="configTitle">
+                <i class="ph ph-sliders-horizontal"></i> Market Rates
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 focus-within:border-emerald-500/50 transition-colors relative">
+                    <label class="text-[10px] text-slate-400 font-semibold block mb-1" id="lUsdt">1 USDT (₹)</label>
+                    <input type="number" id="rateUsdt" value="96" class="w-full bg-transparent text-lg font-bold text-white outline-none" inputmode="decimal">
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 focus-within:border-emerald-500/50 transition-colors relative">
+                    <label class="text-[10px] text-slate-400 font-semibold block mb-1" id="lPol">1 POL (₹)</label>
+                    <input type="number" id="ratePol" value="8.4" class="w-full bg-transparent text-lg font-bold text-white outline-none" inputmode="decimal">
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 focus-within:border-emerald-500/50 transition-colors relative">
+                    <label class="text-[10px] text-slate-400 font-semibold block mb-1" id="lCes">1 CES ($)</label>
+                    <input type="number" id="rateCes" value="0.83" class="w-full bg-transparent text-lg font-bold text-white outline-none" inputmode="decimal">
+                </div>
+                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 focus-within:border-emerald-500/50 transition-colors relative">
+                    <label class="text-[10px] text-slate-400 font-semibold block mb-1" id="lGas">Gas Fee (POL)</label>
+                    <input type="number" id="gasPol" value="5" class="w-full bg-transparent text-lg font-bold text-white outline-none" inputmode="decimal">
+                </div>
+            </div>
+        </div>
 
-        function toggleLang() {
-            isMl = !isMl;
-            document.getElementById('langBtn').innerText = dict[isMl ? 'en' : 'ml'].lang;
-            document.getElementById('lUsdt').innerText = dict[isMl ? 'ml' : 'en'].lUsdt;
-            document.getElementById('lPol').innerText = dict[isMl ? 'ml' : 'en'].lPol;
-            document.getElementById('lCes').innerText = dict[isMl ? 'ml' : 'en'].lCes;
-            document.getElementById('lGas').innerText = dict[isMl ? 'ml' : 'en'].lGas;
-            document.getElementById('lBudget').innerText = dict[isMl ? 'ml' : 'en'].lBudget;
-            render();
-        }
+        <!-- Dashboard Slots Container -->
+        <div id="dashboard" class="space-y-4">
+            <!-- Dynamically injected via JS -->
+        </div>
 
-        const slotData = [
-            { id: 1, type: 'S6', cost: 10 }, { id: 2, type: 'S6', cost: 18 }, { id: 3, type: 'S3', cost: 32.4 },
-            { id: 4, type: 'S6', cost: 58.3 }, { id: 5, type: 'S6', cost: 105 }, { id: 6, type: 'S3', cost: 189 },
-            { id: 7, type: 'S6', cost: 340 }, { id: 8, type: 'S6', cost: 612 }, { id: 9, type: 'S3', cost: 1102 },
-            { id: 10, type: 'S6', cost: 1984 }, { id: 11, type: 'S6', cost: 3571 }, { id: 12, type: 'S3', cost: 6428 }
-        ];
+    </main>
 
-        function render() {
-            const usdt = parseFloat(document.getElementById('rateUsdt').value);
-            const pol = parseFloat(document.getElementById('ratePol').value);
-            const ces = parseFloat(document.getElementById('rateCes').value);
-            const gasNum = parseFloat(document.getElementById('gasPol').value);
-            const budget = parseFloat(document.getElementById('userBudget').value);
-            const lang = isMl ? 'ml' : 'en';
-            
-            const container = document.getElementById('dashboard');
-            container.innerHTML = '';
-            let runningSpent = 0;
+    <script>
+        let isMl = false; // Default to English initially to match the HTML defaults
 
-            slotData.forEach(s => {
-                const igtInr = s.cost * usdt;
-                const gasInr = gasNum * pol;
-                const totalSlot = igtInr + gasInr;
-                runningSpent += totalSlot;
-                const bal = budget - runningSpent;
-                const cesQty = bal > 0 ? (bal / (ces * usdt)).toFixed(2) : 0;
+        const dict = {
+            'en': { 
+                lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'Gas Fee (POL)', lBudget: 'Total Investment (₹)', 
+                cost: 'Cost', gas: 'Gas', bal: 'Remaining Bal', qty: 'CES Coins', totInc: 'Est. Income', 
+                langText: 'മലയാളം', configTitle: 'Market Rates', totalTitle: 'Total'
+            },
+            'ml': { 
+                lUsdt: '1 USDT (₹)', lPol: '1 POL (₹)', lCes: '1 CES ($)', lGas: 'ഗ്യാസ് ഫീ (POL)', lBudget: 'ആകെ നിക്ഷേപം (₹)', 
+                cost: 'ചെലവ്', gas: 'ഗ്യാസ്', bal: 'ബാക്കി തുക', qty: 'CES ടോക്കൺ', totInc: 'വരുമാനം', 
+                langText: 'English', configTitle: 'മാർക്കറ്റ് നിരക്കുകൾ', totalTitle: 'ആകെ'
+            }
+        };
 
-                let incomeArr = new Array(6).fill(0);
-                const pVal = igtInr * 0.9;
+        function toggleLang() {
+            isMl = !isMl;
+            const lang = isMl ? 'ml' : 'en';
+            
+            document.getElementById('langText').innerText = dict[lang].langText;
+            document.getElementById('lUsdt').innerText = dict[lang].lUsdt;
+            document.getElementById('lPol').innerText = dict[lang].lPol;
+            document.getElementById('lCes').innerText = dict[lang].lCes;
+            document.getElementById('lGas').innerText = dict[lang].lGas;
+            document.getElementById('lBudget').innerHTML = `<i class="ph-fill ph-wallet"></i> ${dict[lang].lBudget}`;
+            document.getElementById('configTitle').innerHTML = `<i class="ph ph-sliders-horizontal"></i> ${dict[lang].configTitle}`;
+            
+            render();
+        }
 
-                if(s.type === 'S6') { incomeArr[1] = incomeArr[2] = incomeArr[3] = pVal; } 
-                else { incomeArr[0] = incomeArr[4] = incomeArr[5] = incomeArr[6] = pVal; }
+        const slotData = [
+            { id: 1, type: 'S6', cost: 10 }, { id: 2, type: 'S6', cost: 18 }, { id: 3, type: 'S3', cost: 32.4 },
+            { id: 4, type: 'S6', cost: 58.3 }, { id: 5, type: 'S6', cost: 105 }, { id: 6, type: 'S3', cost: 189 },
+            { id: 7, type: 'S6', cost: 340 }, { id: 8, type: 'S6', cost: 612 }, { id: 9, type: 'S3', cost: 1102 },
+            { id: 10, type: 'S6', cost: 1984 }, { id: 11, type: 'S6', cost: 3571 }, { id: 12, type: 'S3', cost: 6428 }
+        ];
 
-                const totalIncome = incomeArr.reduce((a, b) => a + b, 0);
+        function render() {
+            const usdt = parseFloat(document.getElementById('rateUsdt').value) || 0;
+            const pol = parseFloat(document.getElementById('ratePol').value) || 0;
+            const ces = parseFloat(document.getElementById('rateCes').value) || 0;
+            const gasNum = parseFloat(document.getElementById('gasPol').value) || 0;
+            const budget = parseFloat(document.getElementById('userBudget').value) || 0;
+            const lang = isMl ? 'ml' : 'en';
+            
+            const container = document.getElementById('dashboard');
+            container.innerHTML = '';
+            let runningSpent = 0;
 
-                container.innerHTML += `
-                    <div class="bg-slate-900 border border-slate-700 p-6 rounded-3xl shadow-xl">
-                        <h2 class="text-2xl font-bold text-emerald-400 mb-2">Slot ${s.id} (${s.type})</h2>
-                        <div class="text-sm space-y-1">
-                            <p>${dict[lang].cost}: <span class="text-white">${s.cost} IGT (₹${igtInr.toFixed(0)})</span></p>
-                            <p>${dict[lang].gas}: <span class="text-red-400">${gasNum} POL (₹${gasInr.toFixed(0)})</span></p>
-                            <p class="font-bold text-white border-t border-slate-700 pt-2">Total: ₹${totalSlot.toFixed(0)}</p>
-                            <p class="text-sky-300">${dict[lang].bal}: ₹${bal > 0 ? bal.toFixed(0) : 0}</p>
-                            <p class="text-yellow-400">${dict[lang].qty}: ${cesQty}</p>
-                        </div>
-                        <div class="mt-4 bg-black p-3 rounded-xl">
-                            <div class="grid grid-cols-2 gap-3 text-[10px] text-center">
-                                ${incomeArr.map((val, i) => `<div class="bg-slate-800 p-1 rounded">P${i+1}<br>₹${val.toFixed(0)}</div>`).join('')}
-                            </div>
-                            <p class="mt-3 text-center font-bold text-emerald-400">${dict[lang].totInc}: ₹${totalIncome.toFixed(0)}</p>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-        document.querySelectorAll('input').forEach(i => i.addEventListener('input', render));
-        render();
-    </script>
+            slotData.forEach(s => {
+                const igtInr = s.cost * usdt;
+                const gasInr = gasNum * pol;
+                const totalSlot = igtInr + gasInr;
+                
+                // Track if user has enough balance to unlock THIS slot
+                const prevBal = budget - runningSpent;
+                const isAffordable = prevBal >= totalSlot;
+
+                runningSpent += totalSlot;
+                const bal = budget - runningSpent;
+                const cesQty = bal > 0 ? (bal / (ces * usdt)).toFixed(2) : 0;
+
+                let incomeArr = new Array(6).fill(0);
+                const pVal = igtInr * 0.9;
+
+                // Keep original calculation logic
+                if(s.type === 'S6') { 
+                    incomeArr[2] = incomeArr[3] = incomeArr[4] = pVal; 
+                } else { 
+                    incomeArr[0] = incomeArr[1] = incomeArr[3] = incomeArr[4] = pVal; 
+                }
+
+                const totalIncome = incomeArr.reduce((a, b) => a + b, 0);
+
+                // Styling logic based on affordability
+                const cardStyle = isAffordable 
+                    ? 'bg-slate-900 border-slate-700 shadow-lg' 
+                    : 'bg-slate-900/50 border-slate-800/50 opacity-60 grayscale-[50%]';
+                
+                const badgeStyle = s.type === 'S6' 
+                    ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
+                    : 'bg-purple-500/20 text-purple-400 border border-purple-500/30';
+
+                container.innerHTML += `
+                    <div class="${cardStyle} border p-5 rounded-[1.5rem] transition-all duration-300 relative">
+                        ${!isAffordable ? '<div class="absolute inset-0 z-10 pointer-events-none"></div>' : ''}
+                        
+                        <!-- Header -->
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                                <span class="bg-slate-800 p-1.5 rounded-lg text-emerald-400 text-sm"><i class="ph-fill ph-cube"></i></span>
+                                Slot ${s.id}
+                            </h2>
+                            <span class="${badgeStyle} px-3 py-1 rounded-full text-xs font-bold tracking-widest shadow-sm">
+                                ${s.type}
+                            </span>
+                        </div>
+
+                        <!-- Cost Breakdown -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="space-y-1">
+                                <p class="text-[11px] text-slate-400 uppercase tracking-wide">${dict[lang].cost}</p>
+                                <p class="text-sm font-bold text-white">${s.cost} IGT <span class="text-slate-400 font-normal text-xs">(₹${igtInr.toFixed(0)})</span></p>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[11px] text-slate-400 uppercase tracking-wide">${dict[lang].gas}</p>
+                                <p class="text-sm font-bold text-red-400">${gasNum} POL <span class="text-slate-400 font-normal text-xs">(₹${gasInr.toFixed(0)})</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Highlighted Balances -->
+                        <div class="flex justify-between items-center bg-slate-950 p-3 rounded-2xl border border-slate-800 mb-4">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase">${dict[lang].bal}</p>
+                                <p class="font-bold ${bal > 0 ? 'text-sky-400' : 'text-slate-500'}">₹${bal > 0 ? bal.toFixed(0) : 0}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-slate-400 uppercase">${dict[lang].qty}</p>
+                                <p class="font-bold ${bal > 0 ? 'text-yellow-400' : 'text-slate-500'}">${cesQty}</p>
+                            </div>
+                            <div class="text-right pl-3 border-l border-slate-800">
+                                <p class="text-[10px] text-slate-400 uppercase">${dict[lang].totalTitle}</p>
+                                <p class="font-bold text-white">₹${totalSlot.toFixed(0)}</p>
+                            </div>
+                        </div>
+
+                        <!-- Income Matrix visualization -->
+                        <div class="bg-black/40 p-3 rounded-2xl border border-slate-800/50">
+                            <div class="grid grid-cols-6 gap-1.5 text-center">
+                                ${incomeArr.map((val, i) => `
+                                    <div class="flex flex-col items-center justify-center p-1 rounded-xl ${val > 0 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_10px_rgba(16,185,129,0.1)]' : 'bg-slate-900 text-slate-600'} text-[10px] font-medium h-[52px]">
+                                        <span class="${val > 0 ? 'opacity-80' : ''}">P${i+1}</span>
+                                        <span class="font-bold mt-0.5 leading-tight ${val > 0 ? '' : 'hidden'}">₹${val.toFixed(0)}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center">
+                                <span class="text-xs text-slate-400"><i class="ph ph-chart-line-up"></i> ${dict[lang].totInc}</span>
+                                <span class="font-black text-emerald-400 text-lg">₹${totalIncome.toFixed(0)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Add event listeners to all inputs for real-time calculation
+        document.querySelectorAll('input').forEach(i => i.addEventListener('input', render));
+        
+        // Initial render
+        render();
+    </script>
 </body>
 </html>
 
