@@ -72,8 +72,8 @@
                 let incomeArr = new Array(6).fill(0);
                 const pVal = igtInr * 0.9;
 
-                if(s.type === 'S6') { incomeArr[0] = incomeArr[1] = incomeArr[2] = pVal; } 
-                else { incomeArr[3] = incomeArr[4] = incomeArr[5] = incomeArr[6] = pVal; }
+                if(s.type === 'S6') { incomeArr[1] = incomeArr[2] = incomeArr[3] = pVal; } 
+                else { incomeArr[0] = incomeArr[4] = incomeArr[5] = incomeArr[6] = pVal; }
 
                 const totalIncome = incomeArr.reduce((a, b) => a + b, 0);
 
